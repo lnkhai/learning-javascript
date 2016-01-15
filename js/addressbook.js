@@ -70,7 +70,6 @@ var adr = {
 		var searchValue = searchField.value;
 		target.innerHTML = "";
 
-		alert(searchValue + "--" + count);
 		if (count > 0 && searchValue !== "") {
 			for (i = 0; i < count; i++) {
 				var obj = contacts.addressBook[i], isItFound = obj.name.indexOf(searchValue);
