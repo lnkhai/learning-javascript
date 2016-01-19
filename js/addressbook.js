@@ -23,6 +23,29 @@ var contacts = {
 	]
 };
 
+function getHTTPObject() {
+	var xhr = new XMLHttpRequest;
+
+	return xhr;
+}
+
+function ajaxCall(dataURL, outputElement, callback) {
+	var request = getHTTPObject();
+	outputElement.innerHTML = "Loading...";
+	request.onreadystatechange = function() {
+		if (request.readyState === 4 && request.status === 200) {
+			console.log(request.responseText);
+			var contacts = JSON.parse(request.responseText);
+			if (typeof callback === "function") {
+				callback(contacts);
+			}
+		}
+	}
+
+	request.open("GET", dataURL, true);
+	request.send(null);
+}
+
 var btn = document.getElementById("get-all");
 var searchField = document.getElementById("q");
 var searchForm = document.getElementById("search-form");
@@ -32,19 +55,6 @@ var count = contacts.addressBook.length;
 var book = contacts.addressBook;
 
 var adr = {
-	getAllContacts : function() {
-
-		var i;
-		target.innerHTML = "";
-
-		if (count > 0) {
-			for (i=0; i<count;i=i+1) {
-				var obj = book[i];
-				target.innerHTML += '<p>' + obj.name + ', <a href="mailto:' + obj.email + '">' + obj.email + '</a><p>';
-			}
-		}
-	},
-
 	addActiveSection : function() {
 		this.parentNode.setAttribute("class", "active");
 	},
@@ -62,22 +72,45 @@ var adr = {
 	},
 
 	search : function(event) {
-		event.preventDefault();
-		var target = document.getElementById("output");
-		var book = contacts.addressBook;
-		var count = book.length;
-		var i;
-		var searchValue = searchField.value;
-		target.innerHTML = "";
+		var output = document.getElementById("output");
+		ajaxCall('data/contacts.json', output, function(data) {
+			var searchValue = searchField.value,
+				addrBook = data.addrBook,
+				count = addrBook.length,
+				i;
+			event.preventDefault();
+			target.innerHTML = "";
 
-		if (count > 0 && searchValue !== "") {
-			for (i = 0; i < count; i++) {
-				var obj = contacts.addressBook[i], isItFound = obj.name.indexOf(searchValue);
-				if (isItFound !== -1) {
+			if (count > 0 && searchValue !== "") {
+				for (i = 0; i < count; i++) {
+					var obj = addrBook[i], 
+						isItFound = obj.name.indexOf(searchValue);
+					if (isItFound !== -1) {
+						target.innerHTML += '<p>' + obj.name + ', <a href="mailto:' + obj.email + '">' + obj.email + '</a><p>';
+					}
+				}
+			}
+		});
+	},
+
+	getAllContacts : function() {
+		var output = document.getElementById("output");
+		ajaxCall('data/contacts.json', output, function(data) {
+			var addrBook = data.addressBook,
+				count = addrBook.length,
+				i;
+			target.innerHTML = ""
+			if (count > 0) {
+				for (i=0; i<count;i=i+1) {
+					var obj = addrBook[i];
 					target.innerHTML += '<p>' + obj.name + ', <a href="mailto:' + obj.email + '">' + obj.email + '</a><p>';
 				}
 			}
-		}
+		});
+	},
+
+	setActiveSection : function() {
+		this.parentNode.setAttribute("class", "active");
 	}
 }
 
